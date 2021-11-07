@@ -33,7 +33,7 @@ NEW_TILE_DISTRIBUTION = np.array([2, 2, 2, 2, 2, 2, 2, 2 ,2, 4])
 
 def initialize_game():
     board = np.zeros((NUMBER_OF_SQUARES), dtype="int")
-    initial_twos = np.random.default_rng().choice(NUMBER_OF_SQUARES, 2, replace=False)
+    initial_twos = np.random.choice(NUMBER_OF_SQUARES, 2, replace=False)
     board[initial_twos] = 2
     board = board.reshape((CELL_COUNT, CELL_COUNT))
     return board
