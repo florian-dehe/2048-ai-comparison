@@ -28,6 +28,7 @@ SOFTWARE.
 from tkinter import Frame, Label, CENTER
 
 import game_ai_mcts
+import game_ai_qlearning
 import game_functions
 import time
 
@@ -41,6 +42,7 @@ LEFT_KEY = "'a'"
 RIGHT_KEY= "'d'"
 AI_MCTS = "'q'"
 AI_EVOLUTION = "'e'"
+AI_Q_LEARNING_START = "'v'"
 
 LABEL_FONT = ("Verdana", 40, "bold")
 
@@ -133,7 +135,7 @@ class Display(Frame):
         self.update_idletasks()
     
     def key_press(self, event):
-        valid_game = True
+
         key = repr(event.char)
         if key == AI_EVOLUTION:
             game_valid = True
@@ -143,7 +145,25 @@ class Display(Frame):
                     self.matrix = game_functions.add_new_tile(self.matrix)
                     self.draw_grid_cells()
                     print(self.matrix)
-                    print("") 
+                    print("")
+        elif key == AI_Q_LEARNING_START:
+            game_valid = True
+            q_table = game_ai_qlearning.QTable( exploration_chance=0.1, 
+                                                gamma_value=0.9, 
+                                                learning_rate=0.15, 
+                                                action_range=4)
+            while game_valid:
+                self.matrix, game_valid = game_ai_qlearning.ai_q_learning(self.matrix, q_table)
+                if game_valid:
+                    self.matrix = game_functions.add_new_tile(self.matrix)
+                    self.draw_grid_cells()
+                    print(self.matrix)
+                    print("")
+                else:
+                    print("Reset !")
+                    self.matrix = game_functions.initialize_game()
+                    self.draw_grid_cells()
+                    game_valid = True
 
         elif key in self.commands:
             self.matrix, move_made, _ = self.commands[repr(event.char)](self.matrix)
