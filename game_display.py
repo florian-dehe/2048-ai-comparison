@@ -28,7 +28,9 @@ SOFTWARE.
 from tkinter import Frame, Label, CENTER
 
 import game_ai_mcts
+import game_ai_random
 import game_ai_qlearning
+import game_ai_GA
 import game_functions
 import time
 
@@ -40,9 +42,10 @@ UP_KEY = "'w'"
 DOWN_KEY = "'s'"
 LEFT_KEY = "'a'"
 RIGHT_KEY= "'d'"
-AI_MCTS = "'q'"
-AI_EVOLUTION = "'e'"
-AI_Q_LEARNING_START = "'v'"
+AI_MCTS = "'m'"
+AI_Q_LEARNING_START = "'q'"
+AI_RANDOM = "'r'"
+AI_INIT = "'i'"
 
 LABEL_FONT = ("Verdana", 40, "bold")
 
@@ -137,7 +140,7 @@ class Display(Frame):
     def key_press(self, event):
 
         key = repr(event.char)
-        if key == AI_EVOLUTION:
+        if key == AI_MCTS:
             game_valid = True
             while game_valid:
                 self.matrix, game_valid, gameScore = game_ai_mcts.ai_MCTS(self.matrix, 40, 10)
@@ -146,6 +149,19 @@ class Display(Frame):
                     self.draw_grid_cells()
                     print(self.matrix)
                     print("")
+
+        elif key == AI_RANDOM:
+            game_valid = True
+            while game_valid:
+                self.matrix, game_valid = game_ai_random.randomMove(self.matrix)
+                if game_valid:
+                    self.matrix = game_functions.add_new_tile(self.matrix)
+                    self.draw_grid_cells
+                    print(self.matrix)
+                    print("")
+                elif game_valid == False:
+                    self.draw_grid_cells()
+
         elif key == AI_Q_LEARNING_START:
             game_valid = True
             q_table = game_ai_qlearning.QTable( exploration_chance=0.1, 
@@ -164,6 +180,10 @@ class Display(Frame):
                     self.matrix = game_functions.initialize_game()
                     self.draw_grid_cells()
                     game_valid = True
+
+        elif key == AI_INIT:
+            self.matrix = game_functions.initialize_game()
+            self.draw_grid_cells()
 
         elif key in self.commands:
             self.matrix, move_made, _ = self.commands[repr(event.char)](self.matrix)
