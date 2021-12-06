@@ -33,6 +33,7 @@ import game_ai_qlearning
 import game_ai_GA
 import game_functions
 import time
+import game_ai_nn
 
 EDGE_LENGTH = 400
 CELL_COUNT = 4
@@ -42,10 +43,13 @@ UP_KEY = "'w'"
 DOWN_KEY = "'s'"
 LEFT_KEY = "'a'"
 RIGHT_KEY= "'d'"
+KEY_TABLE = [ UP_KEY, DOWN_KEY, LEFT_KEY, RIGHT_KEY ]
 AI_MCTS = "'m'"
 AI_Q_LEARNING_START = "'q'"
 AI_RANDOM = "'r'"
 AI_INIT = "'i'"
+AI_NN = "'n'"
+AI_NN_TRAINING = "'t'"
 
 LABEL_FONT = ("Verdana", 40, "bold")
 
@@ -92,6 +96,8 @@ class Display(Frame):
                          LEFT_KEY: game_functions.move_left, 
                          RIGHT_KEY: game_functions.move_right,
                          }
+
+        self.nn_training = False
         
         self.grid_cells = []
         self.build_grid()
@@ -180,15 +186,76 @@ class Display(Frame):
                     self.matrix = game_functions.initialize_game()
                     self.draw_grid_cells()
                     game_valid = True
+        
+        elif key == AI_NN:
+            game_valid = True
+            if len(self.nn_training_dataset) == 0:
+                print("No training data for Neural Network !")
+                return
+            
+            if self.nn_training:
+                print("Still training for Neural Network !")
+                return
+
+            net = game_ai_nn.ANN(16, 32, 4)
+            print("Training neural network...")
+            net.train(self.nn_training_dataset, 200)
+            print("Neural network trained !")
+            
+            #Clear board
+            self.matrix = game_functions.initialize_game()
+            self.draw_grid_cells()
+
+            game_valid = True
+            
+            while game_valid:
+                outputs = net.compute(game_ai_nn.matrix_to_list(self.matrix))
+                index = 0
+                for i in range(len(outputs)):
+                    if outputs[i] == 1:
+                        index = i
+                        break
+                print("Prediction:", KEY_TABLE[index])
+                move_command = self.commands[KEY_TABLE[index]]
+                self.matrix, game_valid, score = move_command(self.matrix)
+                if not game_valid:
+                    board, move_possible = game_functions.fixed_move(self.matrix)
+                    if not move_possible:
+                        break
+                    game_valid = move_possible
+                    self.matrix = board
+                
+                print(self.matrix)
+                self.matrix = game_functions.add_new_tile(self.matrix)
+                self.draw_grid_cells()
+
+            print("End neural network")
+
+        elif key == AI_NN_TRAINING:
+            self.nn_training = not self.nn_training
+            if self.nn_training:
+                self.nn_training_dataset = [ ]
+                print("Neural network training enabled !")
+            else:
+                print("Neural network training disabled !")
+                print("Training data set length :",  len(self.nn_training_dataset))
 
         elif key == AI_INIT:
             self.matrix = game_functions.initialize_game()
             self.draw_grid_cells()
 
         elif key in self.commands:
+            move_key_name = repr(event.char)
             self.matrix, move_made, _ = self.commands[repr(event.char)](self.matrix)
             if move_made:
                 self.matrix = game_functions.add_new_tile(self.matrix)
                 self.draw_grid_cells()
                 move_made = False
+                if self.nn_training:
+                    targets = [ 0, 0, 0, 0 ]
+                    targets[KEY_TABLE.index(move_key_name)] = 1
+                    data = game_ai_nn.DataSet(game_ai_nn.matrix_to_list(self.matrix), targets )
+                    print("Training data :", data.values, data.targets)
+                    self.nn_training_dataset.append(data)
+                
 gamegrid = Display()
