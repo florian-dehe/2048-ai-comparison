@@ -7,6 +7,18 @@ def sigmoid(x):
 def sigmoid_derivative(x):
     return x * (1 - x)
 
+def matrix_to_list(matrix):
+    L = []
+    for y in range(len(matrix)):
+        for x in matrix[y]:
+            L.append(x)
+    return L
+
+class DataSet:
+    def __init__(self, values, targets):
+        self.values = values
+        self.targets = targets
+
 class Synapse:
     def __init__(self, input, output) -> None:
         self.input = input
@@ -14,18 +26,15 @@ class Synapse:
         self.weight = randrange(-1, 1)
 
 class Neuron:
-    def __init__(self) -> None:
+    def __init__(self, *args) -> None:
         self.inputs = [ ]
         self.outputs = [ ]
         self.bias = randrange(-1, 1)
-
-    def __init__(self, input_neurons) -> None:
-        self.init()
-
-        for neuron in input_neurons:
-            synapse = Synapse(neuron, self)
-            neuron.outputs.append(synapse)
-            self.inputs.append(synapse)
+        if (len(args) > 0):
+            for neuron in args[0]:
+                synapse = Synapse(neuron, self)
+                neuron.outputs.append(synapse)
+                self.inputs.append(synapse)
 
     def calculate_value(self):
         sum = 0
@@ -38,13 +47,13 @@ class Neuron:
     def calculate_error(self, target):
         return target - self.value
     
-    def calculate_gradient(self, target): # output layer
+    def calculate_gradient_output(self, target): # output layer
         self.gradient = self.calculate_error(target) * sigmoid_derivative(self.value)
     
     def calculate_gradient(self): # hidden layers
         sum = 0
         for s in self.outputs:
-            sum += s.weight * s.input.gradient
+            sum += s.weight * s.output.gradient
         
         self.gradient = sum * sigmoid_derivative(self.value)
     
@@ -73,25 +82,21 @@ class ANN:
             for j in range(hidden_neuron_per_layers):
                 self.hidden_layers[i].append(Neuron( self.input_layer if i == 0 else self.hidden_layers[i-1] ))
 
-        for i in output_neurons:
+        for i in range(output_neurons):
             self.output_layer.append(Neuron(self.hidden_layers[num_hidden_layers-1]))
     
-    def train(self, data, num_epochs : int):
+    def train(self, data : DataSet, num_epochs : int):
         for i in range(num_epochs):
             for set in data:
                 self.forward_propagate(set.values)
                 self.back_propagate(set.targets)
         
-    def train(self, data, minimum_error : float, max_epochs : int):
-        error = 1.0
+    def train(self, data : list, max_epochs : int):
         num_epochs = 0
-        while error > minimum_error and num_epochs < max_epochs:
-            errors = [ ]
+        while num_epochs < max_epochs:
             for set in data:
                 self.forward_propagate(set.values)
                 self.back_propagate(set.targets)
-                errors.append(self.calculate_error(set.targets))
-            error /= len(self.output_layer)
             num_epochs += 1
     
     def forward_propagate(self, inputs):
@@ -107,7 +112,7 @@ class ANN:
     
     def back_propagate(self, targets):
         for i in range(len(self.output_layer)):
-            self.output_layer[i].calculate_gradient(targets[i])
+            self.output_layer[i].calculate_gradient_output(targets[i])
             self.output_layer[i].update_weights(self.learning_rate)
         
         for i in range(len(self.hidden_layers)-1, -1, -1):
