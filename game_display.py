@@ -28,6 +28,7 @@ SOFTWARE.
 from tkinter import Frame, Label, CENTER
 
 import game_ai_mcts
+import game_ai_mcts_strategy2
 import game_ai_random
 import game_ai_qlearning
 import game_ai_GA
@@ -45,6 +46,7 @@ LEFT_KEY = "'a'"
 RIGHT_KEY= "'d'"
 KEY_TABLE = [ UP_KEY, DOWN_KEY, LEFT_KEY, RIGHT_KEY ]
 AI_MCTS = "'m'"
+AI_MCTS2 = "'b'"
 AI_Q_LEARNING_START = "'q'"
 AI_RANDOM = "'r'"
 AI_INIT = "'i'"
@@ -167,6 +169,18 @@ class Display(Frame):
                     print("")
                 elif game_valid == False:
                     self.draw_grid_cells()
+
+        elif key == AI_MCTS2:
+            game_valid = True
+            while game_valid:
+                self.matrix, game_valid, game_score = game_ai_mcts_strategy2.ai_MCTS_strategy2(self.matrix, 20, 100)
+                if game_valid:
+                    self.matrix = game_functions.add_new_tile(self.matrix)
+                    self.draw_grid_cells
+                    print(self.matrix)
+                    print("")
+                elif game_valid == False:
+                    self.draw_grid_cells()                    
 
         elif key == AI_Q_LEARNING_START:
             game_valid = True
