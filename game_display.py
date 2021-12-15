@@ -29,6 +29,7 @@ from tkinter import Frame, Label, CENTER
 
 import game_ai_mcts
 import game_ai_mcts_strategy2
+import game_ai_mcts_strategy3
 import game_ai_random
 import game_ai_qlearning
 import game_ai_GA
@@ -47,6 +48,7 @@ RIGHT_KEY= "'d'"
 KEY_TABLE = [ UP_KEY, DOWN_KEY, LEFT_KEY, RIGHT_KEY ]
 AI_MCTS = "'m'"
 AI_MCTS2 = "'b'"
+AI_MCTS3 = "'v'"
 AI_Q_LEARNING_START = "'q'"
 AI_RANDOM = "'r'"
 AI_INIT = "'i'"
@@ -100,6 +102,11 @@ class Display(Frame):
                          }
 
         self.nn_training = False
+
+        self.q_table = game_ai_qlearning.QTable( exploration_chance=0.1, 
+                                                    gamma_value=0.9, 
+                                                    learning_rate=0.15, 
+                                                    action_range=4)
         
         self.grid_cells = []
         self.build_grid()
@@ -151,7 +158,7 @@ class Display(Frame):
         if key == AI_MCTS:
             game_valid = True
             while game_valid:
-                self.matrix, game_valid, gameScore = game_ai_mcts.ai_MCTS(self.matrix, 40, 10)
+                self.matrix, game_valid, gameScore = game_ai_mcts.ai_MCTS(self.matrix, 40, 40)
                 if game_valid:
                     self.matrix = game_functions.add_new_tile(self.matrix)
                     self.draw_grid_cells()
@@ -173,33 +180,40 @@ class Display(Frame):
         elif key == AI_MCTS2:
             game_valid = True
             while game_valid:
-                self.matrix, game_valid, game_score = game_ai_mcts_strategy2.ai_MCTS_strategy2(self.matrix, 20, 100)
+                self.matrix, game_valid, game_score = game_ai_mcts_strategy2.ai_MCTS_strategy2(self.matrix, 40, 40)
                 if game_valid:
                     self.matrix = game_functions.add_new_tile(self.matrix)
                     self.draw_grid_cells
                     print(self.matrix)
                     print("")
                 elif game_valid == False:
-                    self.draw_grid_cells()                    
+                    self.draw_grid_cells()
+
+        elif key == AI_MCTS3:
+            game_valid = True
+            while game_valid:
+                self.matrix, game_valid, game_score = game_ai_mcts_strategy3.ai_MCTS_strategy3(self.matrix, 40, 40)
+                if game_valid:
+                    self.matrix = game_functions.add_new_tile(self.matrix)
+                    self.draw_grid_cells
+                    print(self.matrix)
+                    print("")
+                elif game_valid == False:
+                    self.draw_grid_cells() 
 
         elif key == AI_Q_LEARNING_START:
             game_valid = True
-            q_table = game_ai_qlearning.QTable( exploration_chance=0.1, 
-                                                gamma_value=0.9, 
-                                                learning_rate=0.15, 
-                                                action_range=4)
+            
             while game_valid:
-                self.matrix, game_valid = game_ai_qlearning.ai_q_learning(self.matrix, q_table)
+                self.matrix, game_valid = game_ai_qlearning.ai_q_learning(self.matrix, self.q_table)
                 if game_valid:
                     self.matrix = game_functions.add_new_tile(self.matrix)
                     self.draw_grid_cells()
                     print(self.matrix)
                     print("")
                 else:
-                    print("Reset !")
-                    self.matrix = game_functions.initialize_game()
                     self.draw_grid_cells()
-                    game_valid = True
+
         
         elif key == AI_NN:
             game_valid = True

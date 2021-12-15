@@ -2,6 +2,7 @@
 import random
 import math
 import time
+import numpy as np
 
 from game_functions import check_for_win, fixed_move, move_down, move_left, move_right, move_up, add_new_tile
 
@@ -106,8 +107,9 @@ def ai_q_learning(matrix, q_table : QTable):
         print(ACTIONS[action])
         new_matrix, game_valid, score = ACTIONS[action](matrix)
     
-    q_table.update_q_value(score, new_matrix)
+    reward = np.max(new_matrix)
+    q_table.update_q_value(reward, new_matrix)
     #q_table.print_q_table()
     
-    time.sleep(0.2)
+    time.sleep(0.1)
     return new_matrix, game_valid
